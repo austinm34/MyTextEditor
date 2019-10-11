@@ -76,8 +76,12 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
 
     }
 
+    //====================================================== Action Events =============================================
+
     public void actionPerformed(ActionEvent e) {
         String s = e.getActionCommand();
+
+        //================================================== Project Events ============================================
 
         if(s.equals("New Project")){                    //If user wants to make new project
             // Create an object of JFileChooser class
@@ -89,7 +93,7 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
 
             if(r == JFileChooser.APPROVE_OPTION){      //if option is approved, i.e. user chose save button
                 String path = j.getSelectedFile().getAbsolutePath();       //get the path of the file
-                String main = path + "\\Main.txt";      //make a path name for main
+                String main = path + "\\Main.java";      //make a path name for main
                 String readme = path + "\\README.txt";  //add a path for readme
                 String lib = path + "\\lib";            //add a path for lib directory
                 //System.out.println(path);
@@ -118,7 +122,7 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
             j.setDialogTitle("Select directory of project to open");
             j.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             //j.setAcceptAllFileFilterUsed(false);
-            int r = j.showSaveDialog(null);                 //these lines open the save dialog
+            int r = j.showOpenDialog(null);                 //these lines open the save dialog
 
             if(r == JFileChooser.APPROVE_OPTION){
                 String projDirPath = j.getSelectedFile().getAbsolutePath();  //get path of existing project this
@@ -127,7 +131,7 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
                 // this should be a directory, else call open file.
                 File projDir = new File(projDirPath);
                 File[] filesInDir = projDir.listFiles();        //get all the filenames in the project
-                String mainPath = j.getSelectedFile().getAbsolutePath() + "\\Main.txt";     //look for main
+                String mainPath = j.getSelectedFile().getAbsolutePath() + "\\Main.java";     //look for main
                 //System.out.println(mainPath);
                 for( File file : filesInDir ){      //start searching for main
                     System.out.println(file.getAbsolutePath());
@@ -148,7 +152,7 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
 
                             currentFile = new File(file.getAbsolutePath()); // sets the current open file to Main.
                             // this will be used in "save project" function
-                            //System.out.println(file.getAbsolutePath());
+                            System.out.println(file.getAbsolutePath());
                         }
                         catch(Exception evt){
                             JOptionPane.showMessageDialog(f, evt.getMessage());
@@ -157,29 +161,36 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
                 }
             }
         }
-        else if(s.equals("Save Project")){      //save all files in the project directory
+        else if(s.equals("Save Project")){      //saves the current file. not really different from save file. idk how to make this different.
+            ///*                                    //can't have more than 1 file open anyway so..
             if(projectDir != null){
+                /*
                 File[] projectFiles = projectDir.listFiles();
                 for( File file : projectFiles) {        // for all the files in the project
                     if(file.isFile()) {             // if it is actually a file, i.e, not a directory,
-                        try {                     //save its contents.
-                            //JOptionPane.showMessageDialog(f, currentFile.getAbsolutePath());
-                            FileWriter wr = new FileWriter(currentFile, false);
-                            BufferedWriter w = new BufferedWriter(wr);
 
-                            w.write(p.getText());
+             */
+                try {                     //save its contents.
+                    //JOptionPane.showMessageDialog(f, currentFile.getAbsolutePath());
+                    FileWriter wr = new FileWriter(currentFile, false);
+                    BufferedWriter w = new BufferedWriter(wr);
 
-                            w.flush();
-                            w.close();
-                        } catch (Exception evt) {
-                            JOptionPane.showMessageDialog(f, evt.getMessage());
-                        }
-                    }
+                    w.write(p.getText());
+
+                    w.flush();
+                    w.close();
+                } catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
                 }
+                    //}
+                //}
+            ///*
             }
             else{
                 JOptionPane.showMessageDialog(f, "You need to open or create a project to save one!\n if this is just a file, use save file.");
             }
+
+             //*/
         }
 
         else if(s.equals("Close Project")){
@@ -198,6 +209,8 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
                 JOptionPane.showMessageDialog(f, "No project is currently opened.");
             }
         }
+
+        //=================================================== File Events ==============================================
 
         else if(s.equals("New File")){  //makes a new file, adds it to project if one is open. else asks where to make it.
             //need to have something to save currently open files before making new one.
@@ -246,7 +259,75 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
         }
 
         else if(s.equals("Open File")){
+            JFileChooser j;
+            if(projectDir == null) {     // if we don't have a project directory, just open the file
+                j = new JFileChooser(":f");
+            }
+            else{       //else
+                j = new JFileChooser(projectDir.getAbsolutePath());
+            }
+            j.setDialogTitle("Open which file?");
 
+            int r = j.showOpenDialog(f);            //need to change currentProject if this isn't in the project
+            if(r == JFileChooser.APPROVE_OPTION){
+                File file = new File (j.getSelectedFile().getAbsolutePath());
+                if(file.exists() && !file.isDirectory()){
+                    try{
+                        //FileReader
+                        FileReader fr = new FileReader(file);
+                        BufferedReader br = new BufferedReader(fr);
+                        String line = null;
+                        StringBuilder sb = new StringBuilder();
+                        while((line = br.readLine()) != null){
+                            sb.append(line + '\n');
+
+                        }
+                        p.setText(sb.toString());
+                        br.close();
+
+                        currentFile = new File(file.getAbsolutePath()); // sets the current open file to Main.
+                    }
+                    catch(Exception evt){
+                        JOptionPane.showMessageDialog(f, evt.getMessage());
+                    }
+                }
+            }
+        }
+
+        else if(s.equals("Save File")) {
+            if(currentFile == null){
+                JOptionPane.showMessageDialog(f, "Open a file to save one. We don't have save as yet.");
+            }
+            else {
+                try {                     //save its contents.
+                    //JOptionPane.showMessageDialog(f, currentFile.getAbsolutePath());
+                    FileWriter wr = new FileWriter(currentFile, false);
+                    BufferedWriter w = new BufferedWriter(wr);
+
+                    w.write(p.getText());
+
+                    w.flush();
+                    w.close();
+                } catch (Exception evt) {
+                    JOptionPane.showMessageDialog(f, evt.getMessage());
+                }
+            }
+        }
+
+        else if(s.equals("Close File")){
+            if(currentFile != null) {
+                int option = JOptionPane.showConfirmDialog(f, "Are you sure you want to close project?\n " +
+                        "any unsaved work will be lost.", "Closing project", JOptionPane.YES_NO_OPTION);
+                //.out.println(option);
+                if(option == 0){    //if they say yes they want to close
+                    p.setText("");
+                    f.setTitle("Code Editor");
+                    currentFile = null;
+                }
+            }
+            else {
+                JOptionPane.showMessageDialog(f, "No File is currently opened.");
+            }
         }
 
         else if(s.equals("Print")){
