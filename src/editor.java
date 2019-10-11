@@ -27,8 +27,8 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
     editor(){
         f = new JFrame("Code Editor");
         p = new JTextPane(document);
-        Font font = new Font(Font.SANS_SERIF, 3, 20);
-        p.setFont(font);
+        //Font font = new Font(Font.SANS_SERIF, 3, 20);
+        //p.setFont(font);
         //tabs = new JTabbedPane(JTabbedPane.TOP);
 
         JMenuBar mb = new JMenuBar();  //why declare this inside while other 2 were declared outsied?
@@ -38,17 +38,32 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
         JMenuItem mi1 = new JMenuItem("New Project");
         JMenuItem mi2 = new JMenuItem("Open Project");
         JMenuItem mi3 = new JMenuItem("Save Project");
+        JMenuItem mi4 = new JMenuItem("Close Project");
+        JMenuItem mi5 = new JMenuItem("New File");
+        JMenuItem mi6 = new JMenuItem("Open File");
+        JMenuItem mi7 = new JMenuItem("Save File");
+        JMenuItem mi8 = new JMenuItem("Close File");
         JMenuItem mi9 = new JMenuItem("Print");
 
         //Add action listener
         mi1.addActionListener(this);
         mi2.addActionListener(this);
         mi3.addActionListener(this);
+        mi4.addActionListener(this);
+        mi5.addActionListener(this);
+        mi6.addActionListener(this);
+        mi7.addActionListener(this);
+        mi8.addActionListener(this);
         mi9.addActionListener(this);
 
         m1.add(mi1);
         m1.add(mi2);
         m1.add(mi3);
+        m1.add(mi4);
+        m1.add(mi5);
+        m1.add(mi6);
+        m1.add(mi7);
+        m1.add(mi8);
         m1.add(mi9);
 
         mb.add(m1);
@@ -59,11 +74,6 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 
-        //======================attempt code coloring==============
-
-
-
-        //=====================end code coloring block=============
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -170,6 +180,73 @@ public class editor extends JFrame implements ActionListener, DocumentListener {
             else{
                 JOptionPane.showMessageDialog(f, "You need to open or create a project to save one!\n if this is just a file, use save file.");
             }
+        }
+
+        else if(s.equals("Close Project")){
+            if(projectDir != null) {
+                int option = JOptionPane.showConfirmDialog(f, "Are you sure you want to close project?\n " +
+                        "any unsaved work will be lost.", "Closing project", JOptionPane.YES_NO_OPTION);
+                //.out.println(option);
+                if(option == 0){    //if they say yes they want to close
+                    p.setText("");
+                    f.setTitle("Code Editor");
+                    projectDir = null;
+                    currentFile = null;
+                }
+            }
+            else{
+                JOptionPane.showMessageDialog(f, "No project is currently opened.");
+            }
+        }
+
+        else if(s.equals("New File")){  //makes a new file, adds it to project if one is open. else asks where to make it.
+            //need to have something to save currently open files before making new one.
+            String newFileName;
+            String newPathName;
+            File newFile;
+            if(projectDir != null){     // if we are currently in a project
+                newFileName = JOptionPane.showInputDialog(f,"Enter a name for the new file:");
+                if(newFileName != null){    //if they didn't cancel
+                    newPathName = projectDir.getAbsolutePath() + "\\" + newFileName;    // need to handle bad characters in input.
+                                                                                        //also need to handle duplicate file names.
+                    newFile = new File(newPathName);   //make new file with appropriate name
+                    try{
+                        boolean createdNewFile = newFile.createNewFile();   //create file
+                        currentFile = newFile;  //set the current file to the one we just made
+                        p.setText("");      //reset text pane
+                    }catch(IOException ioe){
+                        System.out.println("Error creating new file: " + ioe);
+                    }
+                }
+
+            }
+            else{   // if we aren't in a project
+                JFileChooser j = new JFileChooser(":f");
+                j.setDialogTitle("Where do you want to make your file?");                 //set the text at the top
+                j.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  //open a dialog to choose a directory
+
+                int r = j.showSaveDialog(null);                 //show the file chooser and save dialogue.
+                if(r == JFileChooser.APPROVE_OPTION){   //if the pick a place
+                    String newFileDir = j.getSelectedFile().getAbsolutePath();
+                    newFileName = JOptionPane.showInputDialog(f,"Enter a name for the new file");
+                    if(newFileName != null){
+                        newPathName =  newFileDir + "\\" + newFileName;
+                        newFile = new File(newPathName);   //make new file with appropriate name
+                        try{
+                            boolean createdNewFile = newFile.createNewFile();   //create file
+                            currentFile = newFile;  //set current file to the one we just created
+                            p.setText("");      //delete all text in the pane.
+                        }catch(IOException ioe){
+                            System.out.println("Error creating new file: " + ioe);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        else if(s.equals("Open File")){
+
         }
 
         else if(s.equals("Print")){
